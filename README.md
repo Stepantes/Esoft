@@ -1,1 +1,1 @@
-This repository contains solutions to the qualificational Esoft's programming school tasks.
+This repository contains solutions to the qualification Esoft's programming school tasks.
