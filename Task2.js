@@ -1,29 +1,79 @@
-const object1= {name: "BOB", address: {city: "Washington", state: "None"}, languages: ["Нем","Англ","Рус"]};
-function deepCopy(object) {
-    const copy = [];
-    if(Array.isArray(object)) {
-        object.forEach((item) => {
-            copy.push(deepCopy(item));
+//Circular object sample
+const object = {
+    one: "two"
+}
+//Creating a circular object
+object.three = object;
+
+function deepClone(object, hash = new WeakMap()) {
+    if (object === null || typeof object !== 'object') {
+        return object;
+    }
+
+    if (hash.has(object)) {
+        return hash.get(object);
+    }
+
+    if (object instanceof Date) {
+        const copy = new Date(object);
+        hash.set(object, copy);
+        return copy;
+    }
+
+    if (object instanceof Map) {
+        const copy = new Map();
+        hash.set(object, copy);
+        object.forEach((value, key) => {
+            copy.set(deepClone(key, hash), deepClone(value, hash));
         });
         return copy;
     }
-    else if(object !== null && typeof object === "object") {
-        let copy = {};
-        if (typeof object !== "object" || object === null) {
-            return object;
-        }
-        for (let key in object) {
-            copy[key] = deepCopy(object[key]);
+
+    if (object instanceof Set) {
+        const copy = new Set();
+        hash.set(object, copy);
+        object.forEach(value => {
+            copy.add(deepClone(value, hash));
+        });
+        return copy;
+    }
+
+    if (object instanceof RegExp) {
+        const copy = new RegExp(object.object, object.flags);
+        hash.set(object, copy);
+        return copy;
+    }
+
+    if (Array.isArray(object)) {
+        const copy = [];
+        hash.set(object, copy);
+        for (let i = 0; i < object.length; i++) {
+            copy[i] = deepClone(object[i], hash);
         }
         return copy;
     }
-    else {
-        return object;
+
+    const copy = Object.create(Object.getPrototypeOf(object));
+    hash.set(object, copy);
+
+    const symbolKeys = Object.getOwnPropertySymbols(object);
+    for (const sym of symbolKeys) {
+        copy[sym] = deepClone(object[sym], hash);
     }
+
+    for (const key in object) {
+        if (object.hasOwnProperty(key)) {
+            copy[key] = deepClone(object[key], hash);
+        }
+    }
+
+    return copy;
 }
-const deepCopied = (deepCopy(object1))
 
-//Вывод объектов
-console.log(deepCopied);
-console.log(object1);
-
+//TEST
+let copy = deepClone(object);
+console.log(copy);
+console.log(object);
+object.four = "Kitty"
+console.log(copy);
+console.log(object);
